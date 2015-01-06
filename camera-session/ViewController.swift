@@ -7,12 +7,17 @@
 //
 
 import UIKit
+import AVFoundation
 
 class ViewController: UIViewController {
-
+    let captureSession = AVCaptureSession()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        
+        captureSession.sessionPreset = AVCaptureSessionPresetLow
+        let devices = AVCaptureDevice.devices()
+        println(devices)
     }
 
     override func didReceiveMemoryWarning() {
