@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 tutorial. All rights reserved.
 //
 
+
 import UIKit
 import AVFoundation
 
@@ -17,6 +18,8 @@ class ViewController: UIViewController {
     var captureDevice : AVCaptureDevice?
     
     func beginSession() {
+        configureDevice()
+        
         var err : NSError? = nil
         captureSession.addInput(AVCaptureDeviceInput(device: captureDevice, error: &err))
         
@@ -30,12 +33,44 @@ class ViewController: UIViewController {
         previewLayer?.frame = self.view.layer.frame
         captureSession.startRunning()
     }
-   
+    
+    func configureDevice() {
+        if let device = captureDevice {
+            device.lockForConfiguration(nil)
+            device.focusMode = .Locked
+            device.unlockForConfiguration()
+        }
+    }
+    
+    func focusTo(value: Float) {
+        if let device = captureDevice {
+            if device.lockForConfiguration(nil) {
+                device.setFocusModeLockedWithLensPosition(value, completionHandler: { (time) -> Void in
+                  //
+                })
+                device.unlockForConfiguration()
+            }
+        }
+    }
+    
+    
+    let screenWidth = UIScreen.mainScreen().bounds.size.width
+    override func touchesBegan(touches: NSSet, withEvent event: UIEvent) {
+        var anyTouch = touches.anyObject() as UITouch
+        var touchPercent = anyTouch.locationInView(self.view).x / screenWidth
+        focusTo(Float(touchPercent))
+    }
+    
+    override func touchesMoved(touches: NSSet, withEvent event: UIEvent) {
+        var anyTouch = touches.anyObject() as UITouch
+        var touchPercent = anyTouch.locationInView(self.view).x / screenWidth
+        focusTo(Float(touchPercent))
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        captureSession.sessionPreset = AVCaptureSessionPresetLow
+        captureSession.sessionPreset = AVCaptureSessionPresetHigh
         
         let devices = AVCaptureDevice.devices()
         
@@ -46,13 +81,14 @@ class ViewController: UIViewController {
                 // Finally check the position of the camera
                 if device.position == AVCaptureDevicePosition.Back {
                     captureDevice = device as? AVCaptureDevice
+                    if captureDevice != nil {
+                        beginSession()
+                    }
                 }
             }
         }
         
-        if captureDevice != nil {
-           beginSession()
-        }
+        
     }
 
     override func didReceiveMemoryWarning() {
